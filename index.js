@@ -369,9 +369,8 @@ bot.on('callback_query', async (call) => {
             // Заменяем 8-й символ на "/"
             link = link.substring(0, 7) + '/' + link.substring(8);
         }
-        console.log(link)
         const mediaLink = `https://aesthetic-empanada-9da286/${link}`;
-        
+        console.log(mediaLink)
         return {
             type: 'photo',
             media: mediaLink,
