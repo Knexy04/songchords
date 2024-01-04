@@ -1,9 +1,8 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { MongoClient } = require('mongodb');
 const { ObjectId } = require('mongodb');
-const {https} = require("https");
 
-const TOKEN = '6123443092:AAFOcCqr-Ekd4YtJ-EnqRNtYy19Xaw0Xh90';
+const TOKEN = '6837927414:AAHoMdXkpLbSR8gmetTvWjI8-hgSSw3YwEc';
 const MONGO_URL = 'mongodb+srv://admin_1:lhEaP3YV47OK4f3O@songchord.tip91go.mongodb.net/?retryWrites=true&w=majority';
 const DB_NAME = 'songs';
 
@@ -16,40 +15,6 @@ let mongo_author_collection;
 let mongo_song_collection;
 let mongo_accord_collection;
 let mongo_song_accord_collection;
-
-const wakeServer = () => {
-
-    function sendRequestToServer() {
-        // Здесь вы можете настроить опции запроса (например, URL, метод и др.)
-        const options = {
-            hostname: 'https://song-accord-bot.onrender.com',
-            port: 443,
-            path: '/',
-            method: 'GET',
-        };
-
-        // Создаем HTTP запрос
-        const req = https.request(options, (res) => {
-            console.log(`Status code: ${res.statusCode}`);
-            console.log(req)
-        });
-
-        // Обрабатываем ошибки запроса
-        req.on('error', (error) => {
-            console.error(`Error sending request: ${error}`);
-        });
-
-        // Завершаем запрос
-        req.end();
-    }
-
-
-// Отправляем запрос каждые 5 минут (300 000 миллисекунд)
-    setInterval(sendRequestToServer, 300000);
-
-}
-
-wakeServer()
 
 async function connectToMongo() {
   try {
