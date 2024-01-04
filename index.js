@@ -374,6 +374,7 @@ bot.on('callback_query', async (call) => {
         return {
             type: 'photo',
             media: mediaLink,
+            caption: accord.name,
         };
     });
       await bot.sendMediaGroup(chatId, mediaGroup);
