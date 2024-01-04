@@ -370,7 +370,7 @@ bot.on('callback_query', async (call) => {
             link = link.substring(0, 7) + '/' + link.substring(8);
         }
         console.log(link)
-        const mediaLink = `https://song-accord-bot.onrender.com/${link}`;
+        const mediaLink = `https://aesthetic-empanada-9da286/${link}`;
         
         return {
             type: 'photo',
