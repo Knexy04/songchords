@@ -369,7 +369,7 @@ bot.on('callback_query', async (call) => {
             // Заменяем 8-й символ на "/"
             link = link.substring(0, 7) + '/' + link.substring(8);
         }
-        const mediaLink = `https://aesthetic-empanada-9da286/${link}`;
+        const mediaLink = `https://aesthetic-empanada-9da286.netlify.app/${link}`;
         console.log(mediaLink)
         return {
             type: 'photo',
