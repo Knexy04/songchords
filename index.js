@@ -1,12 +1,45 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { MongoClient } = require('mongodb');
 const { ObjectId } = require('mongodb');
+const https = require("https")
 
 const TOKEN = '6837927414:AAHoMdXkpLbSR8gmetTvWjI8-hgSSw3YwEc';
 const MONGO_URL = 'mongodb+srv://admin_1:lhEaP3YV47OK4f3O@songchord.tip91go.mongodb.net/?retryWrites=true&w=majority';
 const DB_NAME = 'songs';
 
 const bot = new TelegramBot(TOKEN, { polling: true });
+
+const wakeServer = () => {
+
+  function sendRequestToServer() {
+      // Здесь вы можете настроить опции запроса (например, URL, метод и др.)
+      const options = {
+          hostname: 'https://song-accord.onrender.com',
+          port: 443,
+          path: '/',
+          method: 'GET',
+      };
+
+      // Создаем HTTP запрос
+      const req = https.request(options, (res) => {
+          console.log(`ok`);
+      });
+
+      // Обрабатываем ошибки запроса
+      req.on('error', (error) => {
+        console.log('ok')
+      });
+
+      req.end();
+  }
+
+
+  setInterval(sendRequestToServer, 300000);
+
+}
+
+wakeServer()
+
 
 let all_tracks_author=[]
 
