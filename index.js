@@ -1,52 +1,30 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { MongoClient } = require('mongodb');
 const { ObjectId } = require('mongodb');
-const https = require("https")
+const natural = require('natural');
+const phonetic = natural.Metaphone;
+const path = require('path'); // Для работы с путями файлов
+const fs = require('fs'); // Для работы с файловой системой
 
 const TOKEN = '6837927414:AAHoMdXkpLbSR8gmetTvWjI8-hgSSw3YwEc';
-const MONGO_URL = 'mongodb+srv://admin_1:lhEaP3YV47OK4f3O@songchord.tip91go.mongodb.net/?retryWrites=true&w=majority';
+const MONGO_URL = 'mongodb+srv://knexy:vvevIsAvTh2B3Jt4@wtf.90qwju6.mongodb.net/';
 const DB_NAME = 'songs';
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-const wakeServer = () => {
-
-  function sendRequestToServer() {
-      // Здесь вы можете настроить опции запроса (например, URL, метод и др.)
-      const options = {
-          hostname: 'https://song-accord.onrender.com',
-          port: 443,
-          path: '/',
-          method: 'GET',
-      };
-
-      // Создаем HTTP запрос
-      const req = https.request(options, (res) => {
-          console.log(`ok`);
-      });
-
-      // Обрабатываем ошибки запроса
-      req.on('error', (error) => {
-        console.log('ok')
-      });
-
-      req.end();
-  }
-
-
-  setInterval(sendRequestToServer, 300000);
-
-}
-
-wakeServer()
-
-
 let all_tracks_author=[]
+
+let all_authors = []
+
+let all_tracks = []
+
+let flag = []
+
+let all_text = []
 
 let mongo_db;
 let mongo_author_collection;
 let mongo_song_collection;
-let mongo_accord_collection;
 let mongo_song_accord_collection;
 
 async function connectToMongo() {
@@ -54,7 +32,7 @@ async function connectToMongo() {
     const client = await MongoClient.connect(MONGO_URL);
     console.log('Connected to MongoDB');
     mongo_db = client.db(DB_NAME);
-    mongo_author_collection = mongo_db.collection('author');
+    mongo_author_collection = mongo_db.collection('autor');
     mongo_song_collection = mongo_db.collection('song');
     mongo_accord_collection = mongo_db.collection('accord');
     mongo_song_accord_collection = mongo_db.collection('songaccord');
@@ -68,6 +46,7 @@ connectToMongo();
 
 
 bot.on('text', async (msg) => {
+
   const chatId = msg.chat.id;
   const messageText = msg.text.trim();
   if (messageText.match(/^\d+$/)) {
@@ -79,44 +58,103 @@ bot.on('text', async (msg) => {
   }
 });
 
-async function handleNumericInput(chatId, trackNumber) {
-  try {
-    if (!lenArray(trackNumber)) {
-      bot.sendMessage(chatId, `Извините, трека под номером ${trackNumber} нет.`);
-      return;
+async function returnFlag(chatId){
+  for (const fl of flag){
+    if (fl[1] == chatId){
+      return fl[0]
     }
+  }
+}
 
-    const [soundTrack, author] = await returnSoundTrack(trackNumber, chatId);
-    const song = await mongo_song_collection.findOne({ _id: soundTrack });
-    const infoAuthor = await mongo_author_collection.findOne({ _id: author });
+async function handleNumericInput(chatId, trackNumber) {
+  const TimeMessageId = (await bot.sendMessage(chatId, "Подождите, выполняю поиск...")).message_id;
+  try {
+      const f = await returnFlag(chatId)
+    if( f == 0){
+      if (!lenArray(trackNumber) && text==null) {
+        bot.sendMessage(chatId, `Извините, трека под номером ${trackNumber} нет.`);
+        return;
+      }
+      const [soundTrack, author] = await returnSoundTrack(trackNumber, chatId);
 
-    const text = `\`\`\`\nТекст песни:\n${song.text}\n\nАвтор: ${infoAuthor.name}\nТрек: ${song.name}\`\`\``;
-
-    const inlineKeyboard = {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: 'Посмотреть аккорды', callback_data: `chords_${soundTrack}` }],
-          [{ text: 'Посмотреть все треки автора', callback_data: `allTracks_${author}` }],
-        ],
-      },
-      parse_mode: 'Markdown',
-    };
-
-    bot.sendMessage(chatId, text, inlineKeyboard);
+      const song = await mongo_song_collection.findOne({ _id: soundTrack });
+      const infoAuthor = await mongo_author_collection.findOne({ _id: author });
+  
+      const text = `\`\`\`\nТекст песни:\n${song.text}\n\nАвтор: ${infoAuthor.name}\nТрек: ${song.name}\`\`\``;
+  
+      const inlineKeyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: 'Посмотреть аккорды', callback_data: `chords_${soundTrack}` }],
+            [{ text: 'Посмотреть все треки автора', callback_data: `allTracks_${author}` }],
+          ],
+        },
+        parse_mode: 'Markdown',
+      };
+      bot.deleteMessage(chatId, TimeMessageId)
+      bot.sendMessage(chatId, text, inlineKeyboard);
+    }
+    else if(f == 1){
+        if (!lenArray_tracks(trackNumber)) {
+          bot.sendMessage(chatId, `Извините, трека под номером ${trackNumber} нет.`);
+          return;
+        }
+    
+        const [soundTrack, author] = await returnTrackNumber(trackNumber, chatId);
+        const song = await mongo_song_collection.findOne({ _id: soundTrack });
+        const infoAuthor = await mongo_author_collection.findOne({ _id: author });
+    
+        const text = `\`\`\`\nТекст песни:\n${song.text}\n\nАвтор: ${infoAuthor.name}\nТрек: ${song.name}\`\`\``;
+    
+        const inlineKeyboard = {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: 'Посмотреть аккорды', callback_data: `chords_${soundTrack}` }],
+              [{ text: 'Посмотреть все треки автора', callback_data: `allTracks_${author}` }],
+            ],
+          },
+          parse_mode: 'Markdown',
+        };
+        bot.deleteMessage(chatId, TimeMessageId)
+        bot.sendMessage(chatId, text, inlineKeyboard);
+    }
+    else{
+      bot.deleteMessage(chatId, TimeMessageId)
+      await handleTextInput(chatId, trackNumber.toString());
+    }
   } catch (error) {
     console.error(error);
+    bot.deleteMessage(chatId, TimeMessageId)
     bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
   }
 }
 
+const jaccardSimilarity = (str1, str2) => {
+  const set1 = new Set(str1);
+  const set2 = new Set(str2);
+
+  const intersectionSize = new Set([...set1].filter(element => set2.has(element))).size;
+  const unionSize = set1.size + set2.size - intersectionSize;
+
+  return unionSize === 0 ? 0 : intersectionSize / unionSize;
+};
+
+const calculateAndSort = async (query, matches) => {
+  const result = await Promise.all(matches.map(async match => {
+    const similarity = jaccardSimilarity(query.toLowerCase(), match.name.toLowerCase());
+    return { ...match, similarity };
+  }));
+
+  return result.sort((a, b) => b.similarity - a.similarity);
+};
+
 async function handleTextInput(chatId, userInput) {
   try {
-    // Check if the input is the /start command
     if (userInput.trim() === '/start') {
-      // Handle /start command separately
       bot.sendMessage(chatId, 'Привет! Введите название автора и/или название трека через "-" (Автор-Трек), только имя автора или только название трека');
       return;
     }
+    const TimeMessageId = (await bot.sendMessage(chatId, "Подождите, выполняю поиск...")).message_id;
     const input_data = userInput.split('-').map((item) => item.trim());
     let [author, track] = [input_data[0], input_data[1]];
 
@@ -124,26 +162,34 @@ async function handleTextInput(chatId, userInput) {
       track = author;
     }
     const author_query = {
-      $or: [
-        { name: { $regex: new RegExp(author, 'i') } },
-        { name1: { $regex: new RegExp(author, 'i') } },
-      ],
-    };
+  $or: [
+    { name: { $regex: new RegExp(author, 'i') } },
+    { name1: { $regex: new RegExp(author, 'i') } },
+    { phonetic: phonetic.process(author) },  // Use phonetic.process instead of soundex
+  ],
+};
 
-    const track_query = {
-      $or: [
-        { name: { $regex: new RegExp(track, 'i') } },
-        { name1: { $regex: new RegExp(track, 'i') } },
-      ],
-    };
+const track_query = {
+  $or: [
+    { name: { $regex: new RegExp(track, 'i') } },
+    { name1: { $regex: new RegExp(track, 'i') } },
+    { phonetic: phonetic.process(track) },  // Use phonetic.process instead of soundex
+  ],
+};
+    
+    const authormatches = await mongo_author_collection.find(author_query).toArray();
+    const trackmatches = await mongo_song_collection.find(track_query).toArray();
 
-    const author_matches = await mongo_author_collection.find(author_query).toArray();
-    const track_matches = await mongo_song_collection.find(track_query).toArray();
+    
+    const author_matches = await calculateAndSort(author.toLowerCase(), authormatches);
+    
+    const track_matches = await calculateAndSort(track.toLowerCase(), trackmatches);
 
-    if (track_matches.length > 0 && author_matches.length > 0) {
+    
+    if (track_matches.length > 0 && author_matches.length > 0 && author!=track) {
       const result_array = [];
       for (const item1 of track_matches) {
-        if (item1.author.toString() == author_matches[0]._id.toString() ){
+        if (item1.autor.toString() == author_matches[0]._id.toString() ){
             result_array.push({
                 idAuthor: author_matches[0]._id ,
                 idSong: item1._id,
@@ -152,12 +198,14 @@ async function handleTextInput(chatId, userInput) {
                 author_name: author_matches[0].name,
               });
             break
+            }
         }
-    }
-
-      const song = result_array[0];
-      const text = `\`\`\`\nТекст песни:\n${song.text}\n\nАвтор: ${song.author_name}\nТрек: ${song.name}\`\`\``;
-
+        let song
+        let text = ''
+          if (result_array.length>0){
+            song = result_array[0];
+            text = `\`\`\`\nТекст песни:\n${song.text}\n\nАвтор: ${song.author_name}\nТрек: ${song.name}\`\`\``;
+          }
       const inlineKeyboard = {
         reply_markup: {
           inline_keyboard: [
@@ -167,44 +215,24 @@ async function handleTextInput(chatId, userInput) {
         },
         parse_mode: 'Markdown',
       };
-
+      bot.deleteMessage(chatId, TimeMessageId)
       bot.sendMessage(chatId, text, inlineKeyboard);
-    } else if (track_matches.length > 0) {
-      await sendTracks(chatId, track_matches, false);
-    } else if (author_matches.length > 0) {
-      await sendTracks(chatId, author_matches, true);
-    } else {
-      bot.sendMessage(chatId, 'Извините, ничего не найдено. Пожалуйста, попробуйте еще раз.');
-    }
-  } catch (error) {
-    console.error(error);
-    bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
-  }
-}
-
-async function sendTracks(chatId, allTracks, byAuthor) {
-  try {
-    if (byAuthor) {
-      const id_author = allTracks[0]._id;
-      await showAllTracksByAuthor(chatId, id_author);
-    } else {
-      const track = allTracks[0].author;
-      const author = await mongo_author_collection.findOne({ _id: track });
-
-      const text = `\`\`\`\nТекст песни:\n${allTracks[0].text}\n\nАвтор: ${author.name}\nТрек: ${allTracks[0].name}\`\`\``;
-
-      const inlineKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: 'Посмотреть аккорды', callback_data: `chords_${allTracks[0]._id}` }],
-            [{ text: 'Посмотреть все треки автора', callback_data: `allTracks_${author._id}` }],
-          ],
-        },
-        parse_mode: 'Markdown',
-      };
-
-      bot.sendMessage(chatId, text, inlineKeyboard);
-    }
+    } else{
+      await all_authors_inArray(author_matches[0], chatId)
+        await all_tracks_inArray(track_matches, chatId)
+        const inlineKeyboard = {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: 'Автор', callback_data: `author` }],
+              [{ text: 'Трек', callback_data: `tracks` }],
+              [{ text: 'Поиск песни по тексту', callback_data: `text_${userInput.trim()}` }],
+            ],
+          },
+        };
+        bot.deleteMessage(chatId, TimeMessageId)
+        bot.sendMessage(chatId, 'Что вы ищите? Ответьте нажатием на кнопку:', inlineKeyboard);
+        return
+      }
   } catch (error) {
     console.error(error);
     bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
@@ -222,10 +250,72 @@ function lenArray(message) {
   return false;
 }
 
+function lenArray_tracks(message) {
+  for (const tracks of all_tracks) {
+    if (Number(message) > tracks[0].length) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function flagAdd(id, tag) {
+  for (const fl of flag) {
+    if ( fl[1] == id ){
+      fl[0] = tag
+      return
+    } 
+  }
+  flag.push([tag, id])
+}
+
+async function returnAuthorId(chat_id) {
+  for (const author of all_authors) {
+    if (parseInt(author[1]) == chat_id) {
+      try{
+        const id = author[0]._id;
+        if (id){
+          return id
+        }
+      }
+      catch {
+        return null
+      }
+    }
+  }
+}
+
 async function returnSoundTrack(message, chat_id) {
   for (const tracks of all_tracks_author) {
     if (parseInt(tracks[1]) == chat_id) {
-      return [tracks[0][Number(message) - 1]._id, tracks[0][Number(message) - 1].author];
+      return [tracks[0][Number(message) - 1]._id, tracks[0][Number(message) - 1].autor];
+    }
+  }
+}
+
+
+
+async function returnTrackNumber(message, chat_id) {
+  for (const tracks of all_tracks) {
+    if (parseInt(tracks[1]) == chat_id) {
+      return [tracks[0][Number(message) - 1]._id, tracks[0][Number(message) - 1].autor];
+    }
+  }
+}
+
+async function returnTrack(chat_id) {
+  for (const tracks of all_tracks) {
+    if (parseInt(tracks[1]) == chat_id) {
+      return tracks[0];
+    }
+  }
+}
+async function returnTrackText(chat_id) {
+  for (const tracks of all_text) {
+    if (parseInt(tracks[1]) == chat_id) {
+      return tracks[0];
     }
   }
 }
@@ -244,11 +334,134 @@ async function tracksinArray(array, chatId) {
   }
 }
 
+async function all_authors_inArray(array, chatId) {
+  let count = 0;
+  for (let i = 0; i < all_authors.length; i++) {
+    if (all_authors[i][1] === chatId) {
+      all_authors[i][0] = array;
+      count++;
+      break;
+    }
+  }
+  if (count === 0) {
+    all_authors.push([array, chatId]);
+  }
+}
+
+async function all_tracks_inArray(array, chatId) {
+  let count = 0;
+  for (let i = 0; i < all_tracks.length; i++) {
+    if (all_tracks[i][1] === chatId) {
+      all_tracks[i][0] = array;
+      count++;
+      break;
+    }
+  }
+  if (count === 0) {
+    all_tracks.push([array, chatId]);
+  }
+}
+
+async function showTextTracks(chatId, page = 1, tracksPerPage = 15, messageId = null){
+  try{
+    const alltracks = await returnTrackText(chatId)
+    console.log(alltracks)
+    const startIndex = (page - 1) * tracksPerPage;
+    const endIndex = startIndex + tracksPerPage;
+    const currentTracks = alltracks.slice(startIndex, endIndex);
+    let tracks = 'Напишите номер песни, для получения информации: \n \n'
+    for (let i=startIndex; i<currentTracks.length + startIndex; i++){
+      const idAuthor = new ObjectId(currentTracks[i-startIndex].autor)
+      const author = await mongo_author_collection.findOne({ _id: idAuthor });
+      if (author){
+        tracks+=`${i + 1}. ${author.name} - ${currentTracks[i-startIndex].name}\n`
+      }
+    }
+    const inlineKeyboard = {
+      reply_markup: {
+        inline_keyboard: [],
+      },
+    };
+
+    if (startIndex > 0) {
+      inlineKeyboard.reply_markup.inline_keyboard.push([{ text: 'Назад', callback_data: `backText_${page}` }]);
+    }
+
+    if (endIndex < alltracks.length) {
+      inlineKeyboard.reply_markup.inline_keyboard.push([{ text: 'Далее', callback_data: `goText_${page}` }]);
+    }
+    if (messageId) {
+        await bot.editMessageText(tracks,{
+            chat_id: chatId, 
+            message_id: messageId,
+            parse_mode: 'Markdown',
+            ...inlineKeyboard 
+        });
+    } else {
+      await bot.sendMessage(chatId, tracks, inlineKeyboard);
+    }
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
+  }
+}
+
+async function showAllTracks(chatId, page = 1, tracksPerPage = 15, messageId = null){
+  try{
+    const alltracks = await returnTrack(chatId)
+    if (alltracks.length === 0){
+      bot.sendMessage(chatId, "Трек не найден");
+      return
+    }
+    const startIndex = (page - 1) * tracksPerPage;
+    const endIndex = startIndex + tracksPerPage;
+    const currentTracks = alltracks.slice(startIndex, endIndex);
+    let tracks = 'Напишите номер песни, для получения информации: \n \n'
+    for (let i=startIndex; i<currentTracks.length + startIndex; i++){
+      const idAuthor = new ObjectId(currentTracks[i-startIndex].autor)
+      const author = await mongo_author_collection.findOne({ _id: idAuthor });
+      if (author){
+        tracks+=`${i + 1}. ${author.name} - ${currentTracks[i-startIndex].name}\n`
+      }
+    }
+    const inlineKeyboard = {
+      reply_markup: {
+        inline_keyboard: [],
+      },
+    };
+
+    if (startIndex > 0) {
+      inlineKeyboard.reply_markup.inline_keyboard.push([{ text: 'Назад', callback_data: `backText_${page}` }]);
+    }
+
+    if (endIndex < alltracks.length) {
+      inlineKeyboard.reply_markup.inline_keyboard.push([{ text: 'Далее', callback_data: `goText_${page}` }]);
+    }
+    if (messageId) {
+        await bot.editMessageText(tracks,{
+            chat_id: chatId, 
+            message_id: messageId,
+            parse_mode: 'Markdown',
+            ...inlineKeyboard 
+        });
+    } else {
+      await bot.sendMessage(chatId, tracks, inlineKeyboard);
+    }
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
+  }
+}
+
 async function showAllTracksByAuthor(chatId, authorId, page = 1, tracksPerPage = 15, messageId = null) {
   try {
+    if (!authorId){
+      bot.sendMessage(chatId, 'Такого автора не существует');
+      return;
+    }
     const idAuthor = new ObjectId(authorId)
     const author = await mongo_author_collection.findOne({ _id: idAuthor });
-    const allTracks = await mongo_song_collection.find({ author: idAuthor }).toArray();
+    const allTracks = await mongo_song_collection.find({ autor: idAuthor }).toArray();
 
     await tracksinArray(allTracks, chatId);
 
@@ -266,7 +479,7 @@ async function showAllTracksByAuthor(chatId, authorId, page = 1, tracksPerPage =
       return;
     }
 
-    let trackMessage = '';
+    let trackMessage = 'Напишите номер песни, для получения информации: \n \n';
     for (let i = startIndex; i < currentTracks.length + startIndex; i++) {
       trackMessage += `${i + 1}. ${author.name} - ${currentTracks[i - startIndex].name}\n`;
     }
@@ -292,6 +505,7 @@ async function showAllTracksByAuthor(chatId, authorId, page = 1, tracksPerPage =
             ...inlineKeyboard 
         });
     } else {
+      
       await bot.sendMessage(chatId, trackMessage, inlineKeyboard);
     }
   } catch (error) {
@@ -308,6 +522,7 @@ bot.on('callback_query', async (call) => {
       const trackId = callbackDataParts[1];
       await showChordsWithPhotos(call.message.chat.id, trackId);
       } else if (call.data.startsWith('allTracks_')) {
+        await flagAdd(call.message.chat.id, 0)
         const authorId = callbackDataParts[1];
         await showAllTracksByAuthor(call.message.chat.id, authorId);
       } else if (call.data.startsWith('next_') || call.data.startsWith('prev_')) {
@@ -321,66 +536,121 @@ bot.on('callback_query', async (call) => {
           await showAllTracksByAuthor(call.message.chat.id, idAuthor, Math.max(1, page - 1), 15, call.message.message_id);
         }
       }
-    } catch (error) {
-      console.error(error);
-      await bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
-    }
-  });
-  
-  async function showChordsWithPhotos(chatId, trackId) {
-    try {
-        const idTrack = new ObjectId(trackId)
-        const allAccords = await mongo_song_accord_collection.aggregate([
-          {
-              $match: { idSong: idTrack }
-          },
-          {
-              $lookup: {
-                  from: "accord",
-                  localField: "idAccord",
-                  foreignField: "_id",
-                  as: "accordData"
-              }
-          },
-          {
-              $unwind: "$accordData"
-          },
-          {
-              $project: {
-                  _id: 0,
-                  name: "$accordData.name",
-                  media: "$accordData.photo",
-              }
+      else if(call.data.startsWith('author')){
+        await flagAdd(call.message.chat.id, 0)
+        const authorId = await returnAuthorId(call.message.chat.id)
+        await showAllTracksByAuthor(call.message.chat.id, authorId);
+      }
+      else if(call.data.startsWith('tracks')){
+        await flagAdd(call.message.chat.id, 1)
+        await showAllTracks(call.message.chat.id)
+      }
+      else if (call.data.startsWith('go_') || call.data.startsWith('back_')) {
+        const page = parseInt(callbackDataParts[1]);
+        if (call.data.startsWith('go_')) {
+          await showAllTracks(call.message.chat.id, page + 1, 15, call.message.message_id);
+        } else if (call.data.startsWith('back_')) {
+          await showAllTracks(call.message.chat.id, Math.max(1, page - 1), 15, call.message.message_id);
+        }
+      }
+      else if (call.data.startsWith('goText_') || call.data.startsWith('backText_')) {
+        const page = parseInt(callbackDataParts[1]);
+        if (call.data.startsWith('goText_')) {
+          await showTextTracks(call.message.chat.id, page + 1, 15, call.message.message_id);
+        } else if (call.data.startsWith('backText_')) {
+          await showTextTracks(call.message.chat.id, Math.max(1, page - 1), 15, call.message.message_id);
+        }
+      }
+      else if (call.data.startsWith('text_')){
+        const text = callbackDataParts[1];
+        const textr = await clearText(text)
+        const track_query = { text: { $regex: (textr || text), $options: 'i' } }
+        const traks = await mongo_song_collection.find(track_query).toArray();
+        let g = false
+        for (const tr of all_text){
+          if (tr[1] == call.message.chat.id){
+            tr[0] = traks
+            g = true
+            break
           }
-      ]).toArray();
-
-      if (allAccords.length === 0) {
-          // Handle case when there are no chords to send
-          await bot.sendMessage(chatId, 'No chords to send.');
-          return;
+        }
+        if (g==false){
+          all_text.push([traks, call.message.chat.id])
+          all_tracks_author.push([traks, call.message.chat.id])
+        }
+        await flagAdd(call.message.chat.id, 0)
+        await showTextTracks(call.message.chat.id)
       }
 
-      const mediaGroup = allAccords.map(accord => {
-        let link = accord.media;
-        // Проверяем, что длина строки достаточна, чтобы изменить 8-й символ
-        if (link.length >= 8) {
-            // Заменяем 8-й символ на "/"
-            link = link.substring(0, 7) + '/' + link.substring(8);
-        }
-        const mediaLink = `https://aesthetic-empanada-9da286.netlify.app/${link}`;
-        console.log(mediaLink)
-        return {
-            type: 'photo',
-            media: mediaLink,
-            caption: accord.name,
-        };
-    });
-      await bot.sendMediaGroup(chatId, mediaGroup);
     } catch (error) {
       console.error(error);
-      await bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
+      await bot.sendMessage(call.message.chat.id, "Уп-с, ошибка, сообщите о ней @knexy");
+    }
+  });
+
+async function clearText(text){
+  let newText = ''
+  for (let i = 0; i<text.length; i++){
+    if (text[i]!=',' && text[i]!='.' && text[i]!='?' && text[i]!='!' && text[i]!='-' && text[i]!=']'){
+      newText += text[i]
     }
   }
+  return newText
+}
+
+
+async function showChordsWithPhotos(chatId, trackId) {
+  try {
+    const idTrack = new ObjectId(trackId);
+    const allAccords = await mongo_song_accord_collection.aggregate([
+      {
+        $match: { idSong: idTrack }
+      },
+      {
+        $lookup: {
+          from: "accord",
+          localField: "idAccord",
+          foreignField: "_id",
+          as: "accordData"
+        }
+      },
+      {
+        $unwind: "$accordData"
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$accordData.name",
+          media: "$accordData.photo",
+        }
+      }
+    ]).toArray();
+
+    if (allAccords.length === 0) {
+      await bot.sendMessage(chatId, 'No chords to send.');
+      return;
+    }
+
+    const mediaGroup = allAccords.map(accord => {
+      let filePath = path.join(__dirname, 'public', accord.media.replace(/\\/g, '/')); // Конвертация пути
+      return {
+        type: 'photo',
+        media: filePath, // Использование строки пути
+        caption: accord.name,
+      };
+    });
+
+    console.log('Media Group:', mediaGroup);
+
+    await bot.sendMediaGroup(chatId, mediaGroup);
+  } catch (error) {
+    console.error('Error:', error);
+    await bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
+  }
+} 
+
+
+
   
   
   if (require.main === module) {
