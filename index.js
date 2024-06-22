@@ -3,8 +3,7 @@ const { MongoClient } = require('mongodb');
 const { ObjectId } = require('mongodb');
 const natural = require('natural');
 const phonetic = natural.Metaphone;
-const path = require('path'); // Для работы с путями файлов
-const fs = require('fs'); // Для работы с файловой системой
+const path = require('path');
 
 const TOKEN = '6837927414:AAHoMdXkpLbSR8gmetTvWjI8-hgSSw3YwEc';
 const MONGO_URL = 'mongodb+srv://knexy:vvevIsAvTh2B3Jt4@wtf.90qwju6.mongodb.net/';
@@ -648,10 +647,6 @@ async function showChordsWithPhotos(chatId, trackId) {
     await bot.sendMessage(chatId, "Уп-с, ошибка, сообщите о ней @knexy");
   }
 } 
-
-
-
-  
   
   if (require.main === module) {
     process.on('SIGINT', async () => {
