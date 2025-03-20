@@ -63,7 +63,7 @@ export async function getChordsForTrack(bot: TelegramBot, chatId: number, trackI
     const chords: IChord[] = await getChordsByTrackId(trackId);
 
     const mediaGroup: InputMediaPhoto[] = chords.map(accord => {
-        const filePath = path.join(__dirname, '../../', 'public', accord.idChord.photo);
+        const filePath = path.join(process.cwd(), 'public', accord.idChord.photo.replace(/\\/g, '/'));
         return {
             type: 'photo',
             media: fs.createReadStream(filePath),
