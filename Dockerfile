@@ -1,17 +1,7 @@
-# Используем более легковесный образ
-FROM node:18-alpine
-
-# Устанавливаем рабочую директорию
-WORKDIR /songchord
-
-# Копируем package.json и устанавливаем зависимости
+FROM node
+WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
-
 COPY . .
-
-# Открываем порт
 EXPOSE 3000
-
-# Запускаем приложение
 CMD ["npm", "run", "start"]
