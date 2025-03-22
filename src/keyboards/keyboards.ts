@@ -18,7 +18,7 @@ export const responseSongKeyboard = (song: ITrack): TelegramBot.SendMessageOptio
     return {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'Посмотреть аккорды', callback_data: `getTrackChords_${song._id}` }],
+                [{ text: 'Посмотреть гитарные аккорды', callback_data: `getTrackChords_${song._id}` }],
                 [{ text: 'Посмотреть все треки автора', callback_data: `getAllTracksAutors_${song.author.name}` }],
             ],
         },
