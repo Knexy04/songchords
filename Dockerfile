@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Устанавливаем рабочую директорию
-WORKDIR /app
+WORKDIR /songchord
 
 # Копируем package.json и устанавливаем зависимости
 COPY package*.json ./
