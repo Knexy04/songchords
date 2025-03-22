@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  react-app:
+    image: knexy/react-app:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
