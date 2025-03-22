@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   react-app:
-    image: knexy/react-app:latest
+    image: knexy04/songchord:latest
     restart: always
     ports:
       - "3000:3000"
