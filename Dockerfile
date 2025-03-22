@@ -8,7 +8,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Копируем исходный код
 COPY . .
 
 # Открываем порт
