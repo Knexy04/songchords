@@ -26,7 +26,7 @@ bot.on('message', async (msg: Message) => {
   } else if (isSpecificTrackSearch(text)) {
     await handleGetSpecificTrack(bot, chatId, text);
   } else {
-    bot.sendMessage(chatId, 'Что вы ищите? Ответьте нажатием на кнопку:', searchUserInputKeyboard(text));
+    bot.sendMessage(chatId, 'Что вы ищите? Ответьте нажатием на кнопку ниже:', searchUserInputKeyboard(text));
   }
 });
 
