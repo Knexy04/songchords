@@ -21,7 +21,11 @@ jobs:
       - name: Деплой на сервер
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            echo pwd
+            echo "Текущая директория:"
+            pwd
+
+            echo "Список файлов и папок:"
+            ls -la
             cd /songchord
             git pull origin main
             docker-compose down
