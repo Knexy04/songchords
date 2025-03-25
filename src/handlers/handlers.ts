@@ -64,14 +64,20 @@ export async function getChordsForTrack(bot: TelegramBot, chatId: number, trackI
 
     const mediaGroup: InputMediaPhoto[] = chords.map(accord => {
         const filePath = path.join(process.cwd(), 'public', accord.idChord.photo.replace(/\\/g, '/'));
-        return {
-            type: 'photo',
-            media: fs.createReadStream(filePath),
-            caption: accord.idChord.name,
-        } as unknown as InputMediaPhoto;
-    });
+        if (fs.existsSync(filePath)) {
+            return {
+                type: 'photo',
+                media: fs.createReadStream(filePath),
+                caption: accord.idChord.name,
+            } as unknown as InputMediaPhoto;
+        }
+    }).filter(Boolean) as unknown as InputMediaPhoto[];
 
-    await bot.sendMediaGroup(chatId, mediaGroup);
+    try {
+        await bot.sendMediaGroup(chatId, mediaGroup);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 export async function handleGetTracksByAuthor(bot: TelegramBot, chatId: number, authorName: string) {
