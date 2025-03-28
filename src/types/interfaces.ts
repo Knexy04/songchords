@@ -1,15 +1,5 @@
 import { ObjectId } from "mongoose";
 
-export enum CommandsSearchUserCallback {
-  AuthorSearch = 'authorSearch',
-  TrackSearch = 'trackSearch',
-  TextSearch = 'textSearch',
-  NextTracksPage = 'nextTracksPage',
-  PrevTracksPage = 'prevTracksPage',
-  GetTrackChords = 'getTrackChords',
-  GetAllTracksAutors = 'getAllTracksAutors',
-}
-
 export interface ITrack {
   _id: ObjectId;
   name: string;
@@ -31,4 +21,4 @@ export interface IChord {
     photo: string,
     name: string,
   }
-}
+} 

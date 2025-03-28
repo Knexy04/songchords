@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
-import { ITrack } from "../interfaces";
+import { ITrack } from "../types";
 
 export const searchUserInputKeyboard = (text: string): TelegramBot.SendMessageOptions => {
     return {
@@ -19,14 +19,14 @@ export const responseSongKeyboard = (song: ITrack): TelegramBot.SendMessageOptio
         reply_markup: {
             inline_keyboard: [
                 [{ text: 'Посмотреть гитарные аккорды', callback_data: `getTrackChords_${song._id}` }],
-                [{ text: 'Посмотреть все треки автора', callback_data: `getAllTracksAutors_${song.author.name}` }],
+                [{ text: 'Посмотреть все треки автора', callback_data: `getAllTracksAuthors_${song.author.name}` }],
             ],
         },
         parse_mode: 'Markdown',
     };
 };
 
-export const responsePageSongKeyboard = (page: number, tracksPagesCount: number) => {
+export const responsePageSongKeyboard = (page: number, tracksPagesCount: number): TelegramBot.SendMessageOptions => {
     return {
         reply_markup: {
             inline_keyboard: [
@@ -35,4 +35,4 @@ export const responsePageSongKeyboard = (page: number, tracksPagesCount: number)
             ],
         },
     };
-};
+}; 
