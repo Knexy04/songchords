@@ -7,35 +7,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - MONGODB_URI=${MONGODB_URI}
-    restart: unless-stopped
-    networks:
-      - songchords-network
-    volumes:
-      - api-logs:/app/logs
+    restart: always
 
   bot:
     build:
       context: ./bot
       dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=production
-      - BOT_TOKEN=${BOT_TOKEN}
-      - API_URL=http://api:3000
-    restart: unless-stopped
+    restart: always
     depends_on:
       - api
-    networks:
-      - songchords-network
-    volumes:
-      - bot-logs:/app/logs
-
-networks:
-  songchords-network:
-    driver: bridge
-
-volumes:
-  api-logs:
-  bot-logs: 
