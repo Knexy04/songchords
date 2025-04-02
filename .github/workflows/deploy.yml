@@ -18,13 +18,13 @@ jobs:
           node-version: 20
 
       - name: Test API
-        working-directory: ./songchords/api
+        working-directory: ./api
         run: |
           npm ci
           npm test
 
       - name: Test Bot
-        working-directory: ./songchords/bot
+        working-directory: ./bot
         run: |
           npm ci
           npm test
@@ -44,7 +44,6 @@ jobs:
       - name: Деплой на сервер
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            cd ./songchords
             git pull origin main
             docker-compose down
             docker-compose build --no-cache
