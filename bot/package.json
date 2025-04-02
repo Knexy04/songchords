@@ -13,8 +13,12 @@
   "author": "knexy",
   "license": "ISC",
   "dependencies": {
+    "@types/mongodb": "^4.0.6",
+    "@types/mongoose": "^5.11.96",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.1",
     "node-telegram-bot-api": "^0.64.0",
     "nodemon": "^3.1.3",
     "typescript": "^5.8.2"
