@@ -18,6 +18,9 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+
+    - name: Pull changes
+      run: git pull
         
     - name: Install API dependencies
       working-directory: ./api
@@ -73,6 +76,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd ~/songchords
+          git pull
           docker-compose pull
           docker-compose down
           docker-compose up -d
