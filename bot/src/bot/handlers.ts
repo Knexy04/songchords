@@ -103,6 +103,8 @@ export async function getChordsForTrack(bot: TelegramBot, chatId: number, trackI
             for (let i = 0; i < mediaGroup.length; i += TELEGRAM_MEDIA_GROUP_LIMIT) {
                 mediaGroups.push(mediaGroup.slice(i, i + TELEGRAM_MEDIA_GROUP_LIMIT));
             }
+
+            console.log(mediaGroups);
             
             // Отправляем каждую группу последовательно
             for (const group of mediaGroups) {
