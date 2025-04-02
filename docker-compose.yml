@@ -2,17 +2,33 @@ version: '3.8'
 
 services:
   api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile
+    build: ./api
     ports:
       - "3000:3000"
+    environment:
+      - MONGO_URL=${MONGO_URL}
+      - PORT=3000
     restart: always
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    networks:
+      - app-network
 
   bot:
-    build:
-      context: ./bot
-      dockerfile: Dockerfile
+    build: ./bot
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - API_URL=http://api:3000
     restart: always
+    volumes:
+      - ./bot:/app
+      - /app/node_modules
     depends_on:
       - api
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
