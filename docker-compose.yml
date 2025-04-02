@@ -5,27 +5,20 @@ services:
     build: ./api
     ports:
       - "3000:3000"
+    restart: unless-stopped
     environment:
-      - MONGO_URL=${MONGO_URL}
-      - PORT=3000
-    restart: always
-    volumes:
-      - ./api:/app
-      - /app/node_modules
+      - NODE_ENV=production
     networks:
       - app-network
 
   bot:
     build: ./bot
-    environment:
-      - BOT_TOKEN=${BOT_TOKEN}
-      - API_URL=http://api:3000
-    restart: always
-    volumes:
-      - ./bot:/app
-      - /app/node_modules
+    restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
     networks:
       - app-network
 
