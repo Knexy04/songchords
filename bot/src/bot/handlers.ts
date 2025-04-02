@@ -96,7 +96,18 @@ export async function getChordsForTrack(bot: TelegramBot, chatId: number, trackI
 
     try {
         if (mediaGroup.length > 0) {
-            await bot.sendMediaGroup(chatId, mediaGroup);
+            // Разбиваем на группы по 10 изображений (ограничение Telegram)
+            const TELEGRAM_MEDIA_GROUP_LIMIT = 10;
+            const mediaGroups: InputMediaPhoto[][] = [];
+            
+            for (let i = 0; i < mediaGroup.length; i += TELEGRAM_MEDIA_GROUP_LIMIT) {
+                mediaGroups.push(mediaGroup.slice(i, i + TELEGRAM_MEDIA_GROUP_LIMIT));
+            }
+            
+            // Отправляем каждую группу последовательно
+            for (const group of mediaGroups) {
+                await bot.sendMediaGroup(chatId, group);
+            }
         } else {
             await bot.sendMessage(chatId, 'Не удалось загрузить изображения аккордов');
         }
