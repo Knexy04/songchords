@@ -43,7 +43,7 @@ function setupMessageHandlers(bot: TelegramBot): void {
     const text = msg.text.trim();
 
     if (text === '/start') {
-      bot.sendMessage(chatId, 'Привет! Введите "Автор - Название", только имя автора или только название трека!!!');
+      bot.sendMessage(chatId, 'Привет! Введите "Автор - Название", только имя автора или только название трека!');
       return;
     }
 
