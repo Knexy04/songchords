@@ -15,7 +15,7 @@ services:
     build: ./bot
     restart: unless-stopped
     depends_on:
-      api
+      - api
     environment:
       - NODE_ENV=production
     networks:
