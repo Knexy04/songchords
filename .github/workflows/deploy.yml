@@ -44,6 +44,7 @@ jobs:
       - name: Деплой на сервер
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd ./songchords
             git pull origin main
             docker-compose down
             docker-compose build --no-cache
